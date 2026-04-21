@@ -525,12 +525,64 @@
         <option value="followup-desc">最新追蹤記錄 新→舊</option>
       </select>
       <button id="btnHasFollowup" class="btn-clear" onclick="toggleHasFollowup()" style="border-color:var(--accent);color:var(--accent)">💬 只看有記錄</button>
+      <button class="btn-clear" onclick="openNewQuote()" style="border-color:var(--won);color:var(--won)">＋ 新增詢價</button>
+      <button class="btn-clear" onclick="generateEmail()" style="border-color:var(--pending);color:var(--pending)">📧 產生詢問信</button>
     </div>
     <div id="quoteList"></div>
   </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- Email Modal -->
+<div id="emailModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;width:680px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-weight:600;font-size:1rem">📧 產生詢問信</span>
+      <button onclick="copyEmail()" style="margin-left:auto;padding:7px 16px;background:var(--accent);color:white;border:none;border-radius:7px;font-size:0.82rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer">複製信件</button>
+      <button onclick="closeEmail()" style="padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:0.82rem;font-family:'DM Sans',sans-serif;cursor:pointer">關閉</button>
+    </div>
+    <div style="padding:16px 20px;overflow-y:auto;flex:1;">
+      <div style="margin-bottom:10px;font-size:0.78rem;color:var(--text3)">目前篩選的報價（共 <span id="emailCount">0</span> 筆）將包含在信件中</div>
+      <textarea id="emailContent" style="width:100%;height:420px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.82rem;font-family:'DM Mono',monospace;line-height:1.6;resize:vertical;outline:none;background:var(--surface2);"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- New Quote Modal -->
+<div id="newQuoteModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);align-items:center;justify-content:center;">
+  <div style="background:white;border-radius:12px;width:480px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
+      <span style="font-weight:600;font-size:1rem">＋ 新增詢價</span>
+      <button onclick="closeNewQuote()" style="margin-left:auto;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:0.82rem;font-family:'DM Sans',sans-serif;cursor:pointer">取消</button>
+    </div>
+    <div style="padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">報價日期</label>
+          <input type="date" id="nq_date" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;"></div>
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">國家</label>
+          <input type="text" id="nq_country" placeholder="例：美國" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Sans',sans-serif;background:var(--surface2);outline:none;"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">客戶（代理商）</label>
+          <input type="text" id="nq_client" placeholder="例：GMSI" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Sans',sans-serif;background:var(--surface2);outline:none;"></div>
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">使用者（End User）</label>
+          <input type="text" id="nq_endUser" placeholder="例：Bwx Technologies" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Sans',sans-serif;background:var(--surface2);outline:none;"></div>
+      </div>
+      <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">機型</label>
+        <input type="text" id="nq_model" placeholder="例：HR-600AND" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">報價金額 (USD)</label>
+          <input type="number" id="nq_price" placeholder="0" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;"></div>
+        <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">接單機率</label>
+          <input type="text" id="nq_prob" placeholder="例：0.5" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;"></div>
+      </div>
+      <div><label style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);display:block;margin-bottom:4px">備註</label>
+        <input type="text" id="nq_note" placeholder="來源、特殊需求等" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:0.85rem;font-family:'DM Sans',sans-serif;background:var(--surface2);outline:none;"></div>
+      <button onclick="submitNewQuote()" style="padding:10px;background:var(--won);color:white;border:none;border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;">新增報價</button>
+    </div>
+  </div>
+</div>
 
 <div class="detail-panel" id="detailPanel">
   <div class="panel-header">
@@ -825,8 +877,22 @@ function openPanel(id) {
     <div>
       <div class="section-title">基本資料</div>
       <div class="info-grid">
-        <div class="info-item"><label>報價日期</label><span>${q.date}</span></div>
-        <div class="info-item"><label>國家</label><span>${q.country||'—'}</span></div>
+        <div class="info-item">
+          <label>報價日期 <span style="color:var(--accent);font-size:0.68rem;text-transform:none">✎ 可編輯</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="date" id="dateInput" value="${q.date}"
+              style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;">
+            <button onclick="saveField(${q.id},'date','dateInput')" style="padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap">儲存</button>
+          </div>
+        </div>
+        <div class="info-item">
+          <label>國家 <span style="color:var(--accent);font-size:0.68rem;text-transform:none">✎ 可編輯</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="countryInput" value="${q.country||''}" placeholder="輸入國家…"
+              style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.85rem;font-family:'DM Sans',sans-serif;background:var(--surface2);outline:none;">
+            <button onclick="saveField(${q.id},'country','countryInput')" style="padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap">儲存</button>
+          </div>
+        </div>
         <div class="info-item">
           <label>客戶 <span style="color:var(--accent);font-size:0.68rem;text-transform:none">✎ 可編輯</span></label>
           <div style="display:flex;gap:6px;align-items:center">
@@ -843,8 +909,22 @@ function openPanel(id) {
             <button onclick="saveEndUser(${q.id})" style="padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap">儲存</button>
           </div>
         </div>
-        <div class="info-item full"><label>機型</label><span style="font-family:'DM Mono',monospace;font-size:1rem">${q.model}</span></div>
-        <div class="info-item full"><label>報價金額 (USD)</label><span class="price-big">$${q.price.toLocaleString()}</span></div>
+        <div class="info-item full">
+          <label>機型 <span style="color:var(--accent);font-size:0.68rem;text-transform:none">✎ 可編輯</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input id="modelInput" value="${q.model||''}" placeholder="輸入機型…"
+              style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:0.95rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;">
+            <button onclick="saveField(${q.id},'model','modelInput')" style="padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap">儲存</button>
+          </div>
+        </div>
+        <div class="info-item full">
+          <label>報價金額 (USD) <span style="color:var(--accent);font-size:0.68rem;text-transform:none">✎ 可編輯</span></label>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="number" id="priceInput" value="${q.price||0}"
+              style="flex:1;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:1.1rem;font-family:'DM Mono',monospace;background:var(--surface2);outline:none;color:var(--accent);font-weight:600;">
+            <button onclick="saveField(${q.id},'price','priceInput',true)" style="padding:5px 10px;background:var(--accent);color:white;border:none;border-radius:6px;font-size:0.78rem;cursor:pointer;white-space:nowrap">儲存</button>
+          </div>
+        </div>
         ${(q.agentNote&&q.agentNote!=='NaT') ? `<div class="info-item full"><label>業助備註</label><span style="color:var(--text2)">${q.agentNote}</span></div>` : ''}
         ${q.prob ? `<div class="info-item"><label>接單機率</label><span>${q.prob}</span></div>` : ''}
       </div>
@@ -911,6 +991,16 @@ function updateStatus(id, status) {
   renderList();
 }
 
+function saveField(id, field, inputId, isNum=false) {
+  const q = quotes.find(x=>x.id===id);
+  if (!q) return;
+  const val = document.getElementById(inputId).value;
+  q[field] = isNum ? (parseInt(val)||0) : val;
+  saveData(q);
+  if (field === 'date' || field === 'model') openPanel(id);
+  renderList();
+}
+
 function saveEndUser(id) {
   const q = quotes.find(x=>x.id===id);
   if (!q) return;
@@ -926,6 +1016,104 @@ function saveClient(id) {
   saveData(q);
   openPanel(id);
   renderList();
+}
+
+// ── New Quote ──────────────────────────────────────────
+function openNewQuote() {
+  const modal = document.getElementById('newQuoteModal');
+  modal.style.display = 'flex';
+  document.getElementById('nq_date').value = new Date().toISOString().slice(0,10);
+  document.getElementById('nq_country').value = '';
+  document.getElementById('nq_client').value = '';
+  document.getElementById('nq_endUser').value = '';
+  document.getElementById('nq_model').value = '';
+  document.getElementById('nq_price').value = '';
+  document.getElementById('nq_prob').value = '';
+  document.getElementById('nq_note').value = '';
+}
+
+function closeNewQuote() {
+  document.getElementById('newQuoteModal').style.display = 'none';
+}
+
+function submitNewQuote() {
+  const date = document.getElementById('nq_date').value;
+  const model = document.getElementById('nq_model').value.trim();
+  if (!date || !model) { alert('請填寫日期和機型'); return; }
+  const maxId = Math.max(...quotes.map(q=>q.id), 300);
+  const newQ = {
+    id: maxId + 1,
+    date,
+    country: document.getElementById('nq_country').value.trim(),
+    client: document.getElementById('nq_client').value.trim(),
+    endUser: document.getElementById('nq_endUser').value.trim(),
+    model,
+    price: parseInt(document.getElementById('nq_price').value)||0,
+    prob: document.getElementById('nq_prob').value.trim(),
+    agentNote: document.getElementById('nq_note').value.trim(),
+    status: 'pending',
+    ivyNote: '',
+    followUps: []
+  };
+  quotes.unshift(newQ);
+  saveData(newQ);
+  closeNewQuote();
+  renderList();
+  setTimeout(() => openPanel(newQ.id), 100);
+}
+
+// ── Generate Email ──────────────────────────────────────
+function generateEmail() {
+  const filtered = getFiltered();
+  if (filtered.length === 0) { alert('請先用篩選選取要詢問的報價（例如點選某個客戶或國家）'); return; }
+
+  // Group by client
+  const byClient = {};
+  filtered.forEach(q => {
+    const key = q.client || '(未知客戶)';
+    if (!byClient[key]) byClient[key] = [];
+    byClient[key].push(q);
+  });
+
+  const today = new Date().toISOString().slice(0,10);
+  const clientNames = Object.keys(byClient).join(', ');
+  
+  let body = `Dear ${clientNames},\n\n`;
+  body += `I hope this message finds you well. Could you please provide us with the latest updates on the following outstanding quotations?\n\n`;
+
+  Object.entries(byClient).forEach(([client, qs]) => {
+    if (Object.keys(byClient).length > 1) body += `[ ${client} ]\n`;
+    qs.forEach(q => {
+      const statusMap = {pending:'Pending', won:'Order Placed', lost:'Lost', replaced:'Replaced'};
+      body += `• ${q.date}  ${q.model}`;
+      if (q.endUser) body += `  (End User: ${q.endUser})`;
+      if (q.price) body += `  USD ${q.price.toLocaleString()}`;
+      body += `  — ${statusMap[q.status]||'Pending'}`;
+      if (q.followUps.length) body += `\n  Last update (${q.followUps[0].date}): ${q.followUps[0].text}`;
+      body += '\n';
+    });
+    body += '\n';
+  });
+
+  body += `Please let us know if there are any updates or if additional information is needed.\n\n`;
+  body += `Thank you for your continued support.\n\nBest regards,\nIvy\nDowell Machine`;
+
+  document.getElementById('emailCount').textContent = filtered.length;
+  document.getElementById('emailContent').value = body;
+  document.getElementById('emailModal').style.display = 'flex';
+}
+
+function closeEmail() {
+  document.getElementById('emailModal').style.display = 'none';
+}
+
+function copyEmail() {
+  const ta = document.getElementById('emailContent');
+  ta.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  btn.textContent = '✓ 已複製！';
+  setTimeout(() => btn.textContent = '複製信件', 2000);
 }
 
 function exportBackup() {
